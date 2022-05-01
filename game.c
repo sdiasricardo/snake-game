@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
-#include <structs.c>
+#include <unistd.h>
+#include "structs.c"
 
 int height=30, width=60, gameover, score;
 int x,y, fruitx, fruity, flag;
@@ -105,7 +106,7 @@ Snake setup(){
 
 
 void input(Snake snake){
-    if(khbit()){
+    if(kbhit()){
         switch(getch()){
             case 'a':
                 snake.direction[0] = -2;

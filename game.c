@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include "structs.c"
 
-int height=30, width=60, gameover, score;
+int height=20, width=20, gameover, score;
 int x,y, fruitx, fruity, flag;
 char table[32][62];
 
@@ -30,12 +30,12 @@ Snake walk(Snake snake){
     actual->next=snake.head;
     snake.head->previous= actual;
     snake.head = actual;
-    if(snake.direction[0] = -2){
-        actual->coordinates[0] -= 2;
+    if(snake.direction[0] = -1){
+        actual->coordinates[0] -= 1;
         table[snake.head->coordinates[0]][snake.head->coordinates[1]] = 'o';
     }
-    else if(snake.direction[0] = +2){
-        actual->coordinates[0] += 2;
+    else if(snake.direction[0] = +1){
+        actual->coordinates[0] += 1;
         table[snake.head->coordinates[0]][snake.head->coordinates[1]] = 'o';
     }
     else if(snake.direction[1] = -1){
@@ -50,7 +50,7 @@ Snake walk(Snake snake){
 }
 
 
-void draw(){
+void create_table(){
     int i, j;
     for (i = 0; i < height + 2; i++) {
         for (j = 0; j < width + 3; j++) {
@@ -64,15 +64,28 @@ void draw(){
             else if(j == 0 || j == width + 2){
                 table[i][j] = '#';
             }
+            else if(i == fruitx && j == fruity){
+                table[i][j] = '*';
+            }
             else {
                 table[i][j] = ' ';
             }
         }
-        printf("\n");
     }
 
-    for(i=0; i<width + 3; i++){
-        printf("%d", i%10);
+}
+
+void draw(){
+    system("cls");
+    for(int i=0; i<height+2; i++){
+        for(int j=0; j<width+3; j++){
+            if(j == width + 2){
+                printf("%c\n", table[i][j]);
+            }
+            else{
+                printf("%c", table[i][j]);
+            }
+        }
     }
 }
 
@@ -82,21 +95,27 @@ Snake setup(){
     Snake snake;
     snake.size=1;
     snake.head = malloc(sizeof(body));
-    snake.head->coordinates[0] = width/2 + 2;
-    snake.head->coordinates[1] = height/2 + 1;
+    snake.head->coordinates[0] = width/2;
+    snake.head->coordinates[1] = height/2;
     snake.head->next= NULL;
     snake.head->previous=NULL;
     snake.tail=malloc(sizeof(body));
     snake.tail=snake.head;
 
+    //When the game is initialized, the snake always goes up
+    snake.direction[0] = 0;
+    snake.direction[1] = 1;
+
+    table[snake.head->coordinates[0]][snake.head->coordinates[1]];
+
     gameover=0;
     label1:
-        fruitx=rand()%62;
-        if(fruitx%2 == 1 || fruitx == 0)
+        fruitx=rand()%20;
+        if(fruitx == 0)
             goto label1;
     
     label2:
-        fruity=rand()%32;
+        fruity=rand()%20;
         if(fruity==0)
             goto label2;
     score=0;
@@ -105,11 +124,11 @@ Snake setup(){
 }
 
 
-void input(Snake snake){
+Snake input(Snake snake){
     if(kbhit()){
         switch(getch()){
             case 'a':
-                snake.direction[0] = -2;
+                snake.direction[0] = -1;
                 snake.direction[1] = 0;
                 break;
             case 's':
@@ -117,7 +136,7 @@ void input(Snake snake){
                 snake.direction[1] = +1;
                 break;
             case 'd':
-                snake.direction[0] = +2;
+                snake.direction[0] = 1;
                 snake.direction[1] = 0;
                 break;
             case 'w':
@@ -129,6 +148,7 @@ void input(Snake snake){
                 break;
         }
     }
+    return snake;
 }
 
 
@@ -141,34 +161,43 @@ Snake logic(Snake snake)
         || snake.head->coordinates[1] < 0 || snake.head->coordinates[1] > height){
         gameover = 1;
         return snake;
-    } else if(verify_body(snake)){
-        gameover = 1;
-        return snake;
     }
-  
+
     // If snake reaches the fruit, then update the score
     if (snake.head->coordinates[0] == fruitx && snake.head->coordinates[1] == fruity) {
-    label3:
-        fruitx=rand()%62;
-        if(fruitx%2 == 1 || fruitx == 0)
-            goto label3;
+        label3:
+            fruitx=rand()%20;
+            if(fruitx%2 == 1 || fruitx == 0)
+                goto label3;
     
-    label4:
-        fruity=rand()%32;
-        if(fruity==0)
-            goto label4;
+        label4:
+            fruity=rand()%20;
+            if(fruity==0)
+                goto label4;
 
-    // If the snake eats a fruit, its not necessary to remove its last body piece
-    score++;
-    return snake;
+        // If the snake eats a fruit, its not necessary to remove its last body piece
+        score++;
     }else{
         table[snake.tail->coordinates[0]][snake.tail->coordinates[1]] = ' '; // Clearing the tail space;
         snake.tail=snake.tail->previous;
         snake.tail->next = NULL;
     }
+
+    if(verify_body(snake)){
+        gameover=1;
+    }
+    return snake;
 }
 
 
 void main(){
+    create_table();
     draw();
+    Snake snake = setup();
+
+    while(!gameover){
+        draw();
+        snake = input(snake);
+        snake = logic(snake);
+    }
 }

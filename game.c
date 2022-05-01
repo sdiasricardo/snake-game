@@ -7,25 +7,43 @@ int height=30, width=60, gameover, score;
 int x,y, fruitx, fruity, flag;
 char table[32][62];
 
-// Change it again to a linked list
+void free_snake(body* head){
+    if(head != NULL){
+        free_snake(head->next);
+        free(head);
+    }
+}
+
+
+int verify_body(Snake snake){
+    if(table[snake.head->coordinates[0]][snake.head->coordinates[1]] == 'o'){
+        return 1;
+    }
+    return 0;
+}
 
 Snake walk(Snake snake){
-    table[snake.head[0]][snake.head[1]] = "o"
+    table[snake.head->coordinates[0]][snake.head->coordinates[1]] = 'o';
+
+    body* actual = snake.head;
+    actual->next=snake.head;
+    snake.head->previous= actual;
+    snake.head = actual;
     if(snake.direction[0] = -2){
-        snake.head[0] -= 2;
-        table[snake.head[0]][snake.head[1]] = "O";
+        actual->coordinates[0] -= 2;
+        table[snake.head->coordinates[0]][snake.head->coordinates[1]] = 'o';
     }
     else if(snake.direction[0] = +2){
-        snake.head[0] += 2;
-        table[snake.head[0]][snake.head[1]] = "O";
+        actual->coordinates[0] += 2;
+        table[snake.head->coordinates[0]][snake.head->coordinates[1]] = 'o';
     }
     else if(snake.direction[1] = -1){
-        snake.head[1] -= 1;
-        table[snake.head[0]][snake.head[1]] = "O";
+        actual->coordinates[1]-= 1;
+        table[snake.head->coordinates[0]][snake.head->coordinates[1]] = 'o';
     }
     else if(snake.direction[1] = +1){
-        snake.head[1] += 1;
-        table[snake.head[0]][snake.head[1]] = "O";
+        actual->coordinates[1] += 1;
+        table[snake.head->coordinates[0]][snake.head->coordinates[1]] = 'o';
     }
     return snake;
 }
@@ -62,11 +80,13 @@ Snake setup(){
     //creating the snake
     Snake snake;
     snake.size=1;
-    snake.head[0]=width/2 + 2;
-    snake.head[1]=height/2;
-    snake.tail[0] = snake.head[0];
-    snake.tail[1] = snake.head[1];
-
+    snake.head = malloc(sizeof(body));
+    snake.head->coordinates[0] = width/2 + 2;
+    snake.head->coordinates[1] = height/2 + 1;
+    snake.head->next= NULL;
+    snake.head->previous=NULL;
+    snake.tail=malloc(sizeof(body));
+    snake.tail=snake.head;
 
     gameover=0;
     label1:
@@ -116,8 +136,8 @@ Snake logic(Snake snake)
     sleep(0.01);
     snake = walk(snake);
     // If the game is over
-    if (snake.head[0] < 0 || snake.head[0] > width
-        || snake.head[1] < 0 || snake.head[1] > height){
+    if (snake.head->coordinates[0] < 0 || snake.head->coordinates[0] > width
+        || snake.head->coordinates[1] < 0 || snake.head->coordinates[1] > height){
         gameover = 1;
         return snake;
     } else if(verify_body(snake)){
@@ -126,7 +146,7 @@ Snake logic(Snake snake)
     }
   
     // If snake reaches the fruit, then update the score
-    if (snake.head[0] == fruitx && snake.head[1] == fruity) {
+    if (snake.head->coordinates[0] == fruitx && snake.head->coordinates[1] == fruity) {
     label3:
         fruitx=rand()%62;
         if(fruitx%2 == 1 || fruitx == 0)
@@ -141,15 +161,9 @@ Snake logic(Snake snake)
     score++;
     return snake;
     }else{
-        table[snake.tail[0]][snake.tail[1]] = ' '; // Clearing the tail space;
-
-        if(table[snake.tail[0] - 2][snake.tail[1]] == 'o'){
-            snake.tail[0] -= 2;
-        }else if(table[snake.tail[0] + 2][snake.tail[1]] == 'o'){
-            snake.tail[0] += 2;
-        }else if(table[snake.tail[0]][snake.tail[1] + 1] == 'o'){
-            snake.tail[0] -= 2;
-        }
+        table[snake.tail->coordinates[0]][snake.tail->coordinates[1]] = ' '; // Clearing the tail space;
+        snake.tail=snake.tail->previous;
+        snake.tail->next = NULL;
     }
 }
 
